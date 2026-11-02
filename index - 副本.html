@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
+<meta name="format-detection" content="telephone=no">
+<title>学习打卡 · 一起学习</title>
+<style>
+  :root{
+    --primary:#4f46e5; --primary-2:#7c3aed; --bg:#f2f4f8; --card:#ffffff;
+    --text:#1f2430; --muted:#8a90a0; --line:#e7e9f0;
+    --green:#16a34a; --green-bg:#e7f7ee; --amber:#b45309; --amber-bg:#fdf3e2; --red:#dc2626; --red-bg:#fdeaea;
+    --radius:18px; --shadow:0 8px 30px rgba(31,36,48,.08);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  body{min-height:100vh;display:flex;justify-content:center;}
+  .app{width:100%;max-width:520px;min-height:100vh;background:var(--bg);display:flex;flex-direction:column;position:relative;}
+
+  /* ---------- header ---------- */
+  header{
+    background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 60%,#a855f7 100%);
+    color:#fff;padding:calc(18px + env(safe-area-inset-top)) 20px 22px;
+    border-radius:0 0 26px 26px;position:relative;overflow:hidden;
+  }
+  header::after{content:"";position:absolute;right:-40px;top:-60px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.08);}
+  .brand-row{display:flex;align-items:center;gap:8px;font-size:15px;opacity:.92;position:relative;z-index:1;}
+  .brand-row .dot{width:7px;height:7px;border-radius:50%;background:#7CFFB2;box-shadow:0 0 0 3px rgba(124,255,178,.25);}
+  .date-line{display:flex;align-items:baseline;gap:10px;margin-top:10px;position:relative;z-index:1;}
+  .date-big{font-size:26px;font-weight:700;letter-spacing:.5px;}
+  .date-week{font-size:14px;opacity:.85;}
+  .stats-row{display:flex;gap:10px;margin-top:16px;position:relative;z-index:1;}
+  .stat{flex:1;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.18);
+    border-radius:14px;padding:10px 12px;backdrop-filter:blur(4px);}
+  .stat b{display:block;font-size:18px;line-height:1.2;}
+  .stat span{font-size:11px;opacity:.85;}
+  .today-bar{display:flex;gap:8px;margin-top:10px;position:relative;z-index:1;}
+  .today-bar span{flex:1;display:flex;align-items:baseline;gap:5px;font-size:11.5px;color:rgba(255,255,255,.9);
+    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:11px;padding:7px 10px;}
+  .today-bar b{font-size:14px;font-weight:700;}
+
+  /* ---------- tab switch ---------- */
+  .tabs{display:flex;margin:16px 20px 0;background:#e8eaf3;border-radius:14px;padding:4px;position:relative;}
+  .tabs button{flex:1;border:0;background:transparent;padding:10px 0;border-radius:11px;
+    font-size:14px;font-weight:600;color:#6b7280;font-family:inherit;transition:.2s;}
+  .tabs button.active{background:#fff;color:var(--primary);box-shadow:0 2px 8px rgba(31,36,48,.10);}
+
+  /* ---------- content ---------- */
+  main{flex:1;padding:16px 20px calc(24px + env(safe-area-inset-bottom));}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+
+  /* 两次打卡：阶段切换 */
+  .phase-switch{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:16px 18px 0;}
+  .phase-switch button{position:relative;display:flex;align-items:center;gap:9px;text-align:left;cursor:pointer;
+    border:1.5px solid var(--line);background:#f8f9ff;border-radius:14px;padding:11px 11px;
+    font-family:inherit;color:var(--text);transition:.2s;}
+  .phase-switch .ps-ico{font-size:18px;line-height:1;flex:0 0 auto;}
+  .phase-switch .ps-txt{min-width:0;}
+  .phase-switch .ps-txt b{display:block;font-size:13px;font-weight:700;letter-spacing:.2px;white-space:nowrap;}
+  .phase-switch .ps-txt small{display:block;font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.3;white-space:nowrap;}
+  .phase-switch button.on{background:linear-gradient(135deg,var(--primary),var(--primary-2));
+    border-color:transparent;color:#fff;box-shadow:0 8px 18px rgba(79,70,229,.26);}
+  .phase-switch button.on small{color:rgba(255,255,255,.82);}
+  .phase-switch .ps-done{position:absolute;top:-7px;right:8px;font-style:normal;font-size:10px;font-weight:700;
+    background:#16a34a;color:#fff;border-radius:999px;padding:2px 7px;box-shadow:0 2px 6px rgba(22,163,74,.35);}
+  .phase-hint{padding:11px 18px 0;font-size:12px;color:var(--muted);line-height:1.55;}
+  .phase-hint b{color:#4b5162;}
+
+  /* wizard */
+  .progress{display:flex;align-items:center;gap:6px;padding:14px 18px 0;}
+  .progress .bar{flex:1;height:4px;border-radius:4px;background:#eceef5;overflow:hidden;}
+  .progress .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--primary),var(--primary-2));border-radius:4px;transition:width .3s ease;}
+  .step-label{padding:10px 18px 0;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .step-label b{color:var(--primary);}
+
+  .viewport{overflow:hidden;touch-action:pan-y;}
+  .track{display:flex;transition:transform .32s cubic-bezier(.22,.61,.36,1);will-change:transform;}
+  .step{flex:0 0 100%;padding:18px 18px 8px;min-height:330px;display:flex;flex-direction:column;}
+  .step h2{margin:0 0 4px;font-size:19px;letter-spacing:.2px;}
+  .step .hint{margin:0 0 18px;font-size:13px;color:var(--muted);line-height:1.5;}
+
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:13px;font-weight:600;color:#4b5162;margin-bottom:7px;}
+  .req{color:#dc2626;}
+  .field input[type=text],.field input[type=time],.field textarea{
+    width:100%;border:1.5px solid var(--line);background:#fafbff;border-radius:13px;
+    padding:13px 14px;font-size:16px;font-family:inherit;color:var(--text);outline:none;transition:.2s;
+  }
+  .field input:focus,.field textarea:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px rgba(79,70,229,.12);}
+  .field textarea{resize:vertical;min-height:96px;line-height:1.6;font-size:15px;}
+
+  .big-num{display:flex;align-items:baseline;justify-content:center;gap:6px;margin:8px 0 18px;}
+  .big-num b{font-size:46px;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--primary-2));
+    -webkit-background-clip:text;background-clip:text;color:transparent;line-height:1;}
+  .big-num span{font-size:14px;color:var(--muted);}
+
+  input[type=range]{width:100%;-webkit-appearance:none;height:8px;border-radius:8px;
+    background:linear-gradient(90deg,var(--primary) 0%,var(--primary-2) 100%);outline:none;margin:6px 0 16px;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;
+    background:#fff;border:3px solid var(--primary);box-shadow:0 3px 10px rgba(79,70,229,.35);}
+  input[type=range].green{background:linear-gradient(90deg,#16a34a 0%,#22c55e 100%);}
+  input[type=range].green::-webkit-slider-thumb{border-color:#16a34a;box-shadow:0 3px 10px rgba(22,163,74,.35);}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .chips button{border:1.5px solid var(--line);background:#fff;border-radius:11px;padding:8px 14px;
+    font-size:14px;color:#5b6172;font-family:inherit;transition:.15s;}
+  .chips button.on{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;border-color:transparent;}
+
+  .status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:4px;}
+  .status-grid button{border:1.5px solid var(--line);background:#fafbff;border-radius:13px;padding:12px 6px;
+    font-size:14px;font-weight:600;color:#5b6172;font-family:inherit;transition:.15s;}
+  .status-grid button.on{color:#fff;border-color:transparent;}
+  .status-grid button[data-v="已完成"].on{background:linear-gradient(135deg,#16a34a,#22c55e);}
+  .status-grid button[data-v="部分完成"].on{background:linear-gradient(135deg,#d97706,#f59e0b);}
+  .status-grid button[data-v="未完成"].on{background:linear-gradient(135deg,#dc2626,#ef4444);}
+
+  /* 早上计划引用卡 */
+  .plan-ref{margin-top:4px;background:#f4f5ff;border:1px solid #e3e6fb;border-radius:13px;padding:12px 14px;}
+  .plan-ref .pr-title{font-size:12px;font-weight:700;color:#4f46e5;margin-bottom:6px;}
+  .plan-ref .pr-body{font-size:13px;line-height:1.6;color:#3d4354;}
+  .plan-ref .pr-body b{font-weight:700;}
+  .plan-ref .pr-time{font-size:11px;color:var(--muted);margin-left:7px;font-weight:400;}
+  .plan-ref .pr-body p{margin:5px 0 0;color:#4b5162;word-break:break-word;}
+  .plan-ref .pr-body.muted{color:var(--muted);}
+
+  .summary{background:#f7f8fd;border:1px dashed #d8dcf0;border-radius:14px;padding:14px 16px;margin-top:6px;}
+  .summary .row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:14px;border-bottom:1px dashed #e4e7f5;}
+  .summary .row:last-child{border-bottom:0;}
+  .summary .row span{color:var(--muted);flex:0 0 auto;}
+  .summary .row b{font-weight:600;text-align:right;word-break:break-all;}
+
+  .step-foot{padding:0 18px 18px;}
+  .btn{width:100%;border:0;border-radius:15px;padding:15px;font-size:16px;font-weight:700;
+    font-family:inherit;letter-spacing:.5px;cursor:pointer;transition:.2s;}
+  .btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;
+    box-shadow:0 8px 20px rgba(79,70,229,.30);}
+  .btn.primary:active{transform:scale(.985);}
+  .btn.primary:disabled{opacity:.6;}
+  .btn.ghost{background:transparent;color:#6b7280;font-weight:600;}
+  .foot-row{display:flex;gap:10px;}
+  .foot-row .btn{flex:1;}
+  .foot-row .btn.ghost{flex:0 0 88px;background:#f1f2f8;}
+
+  /* wall */
+  .wall-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .wall-head h2{margin:0;font-size:18px;}
+  .wall-head .refresh{border:0;background:#e8eaf3;color:#5b6172;border-radius:10px;padding:8px 12px;
+    font-size:13px;font-family:inherit;font-weight:600;}
+  .wall-sub{font-size:12px;color:var(--muted);margin:0 0 12px;line-height:1.6;}
+  .wall-sub b{color:#4b5162;}
+  .filter{display:flex;gap:8px;margin-bottom:14px;}
+  .filter button{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 16px;
+    font-size:13px;color:#5b6172;font-family:inherit;font-weight:600;}
+  .filter button.on{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;border-color:transparent;}
+  .empty{text-align:center;padding:46px 20px;color:var(--muted);font-size:14px;line-height:1.8;}
+  .empty .icon{font-size:44px;margin-bottom:10px;}
+
+  .rec{background:var(--card);border-radius:16px;padding:14px 15px;margin-bottom:11px;box-shadow:0 5px 18px rgba(31,36,48,.06);
+    animation:fadeUp .3s ease both;}
+  .rec-top{display:flex;align-items:center;gap:10px;}
+  .avatar{width:40px;height:40px;border-radius:13px;flex:0 0 40px;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-size:16px;background:linear-gradient(135deg,#4f46e5,#a855f7);}
+  .rec-name{flex:1;min-width:0;}
+  .rec-name b{display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rec-name span{display:block;font-size:11px;color:var(--muted);margin-top:2px;}
+  .rec-state{font-size:10.5px;font-weight:700;border-radius:999px;padding:4px 9px;flex:0 0 auto;}
+  .rec-state.amber{background:var(--amber-bg);color:var(--amber);}
+  .rec-state.gray{background:#eef0f7;color:#6b7280;}
+  .rec-phase{margin-top:9px;border-radius:12px;padding:9px 11px;}
+  .rec-phase.plan{background:#f4f5ff;border:1px solid #e5e8fb;}
+  .rec-phase.result{background:#f5fbf7;border:1px solid #e1f1e8;}
+  .rec-phase.ghost{background:#fafbfe;border:1px dashed #e0e4ef;color:#a3a9ba;font-size:12px;padding:10px 11px;}
+  .ph-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .ph-head .tag{font-size:10.5px;padding:3px 8px;}
+  .ph-time{margin-left:auto;font-size:10.5px;color:#a9aec0;font-variant-numeric:tabular-nums;}
+  .rec-phase .rec-task{background:transparent;padding:7px 0 0;font-size:12.5px;line-height:1.55;color:#3d4354;}
+  .rec-phase .rec-plan{margin-top:6px;font-size:11.5px;color:var(--muted);}
+  .rec-phase .rec-plan b{color:#5b6172;font-weight:600;}
+  .rec-task{font-size:13px;line-height:1.6;color:#3d4354;background:#f8f9fe;border-radius:11px;padding:10px 12px;word-break:break-word;}
+  .tag{font-size:11px;padding:4px 9px;border-radius:8px;background:#eef0fa;color:#4f46e5;font-weight:600;}
+  .tag.green{background:var(--green-bg);color:var(--green);}
+  .tag.amber{background:var(--amber-bg);color:var(--amber);}
+  .tag.red{background:var(--red-bg);color:var(--red);}
+  .rec-date{font-size:11px;color:#b3b8c9;margin-top:8px;}
+
+  /* ---------- 排行榜 ---------- */
+  .rank-sum{display:grid;grid-template-columns:repeat(3,1fr);padding:14px 6px;margin-bottom:10px;
+    border-radius:16px;color:#fff;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 60%,#a855f7 100%);
+    box-shadow:0 10px 24px rgba(79,70,229,.24);}
+  .rank-sum .rs{text-align:center;position:relative;}
+  .rank-sum .rs + .rs::before{content:"";position:absolute;left:0;top:14%;bottom:14%;width:1px;background:rgba(255,255,255,.2);}
+  .rank-sum .rs b{display:block;font-size:21px;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums;}
+  .rank-sum .rs span{display:block;font-size:10.5px;opacity:.85;margin-top:3px;}
+  .rank-note{font-size:11.5px;color:var(--muted);line-height:1.6;margin:0 0 12px;}
+  .rank-note b{color:#4b5162;font-weight:700;}
+  .rank-sort{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .rank-sort .lbl{font-size:12px;color:var(--muted);flex:0 0 auto;}
+  .rank-sort .chips{gap:7px;}
+  .rank-sort .chips button{padding:6px 12px;font-size:12.5px;border-radius:999px;}
+  .rank-row{background:var(--card);border-radius:16px;padding:12px 14px 11px;margin-bottom:10px;
+    box-shadow:0 5px 18px rgba(31,36,48,.06);border:1px solid transparent;animation:fadeUp .3s ease both;}
+  .rank-row.top1{border-color:#fde68a;background:linear-gradient(180deg,#fffdf5,#fff);box-shadow:0 8px 22px rgba(245,158,11,.16);}
+  .rank-row.top2{border-color:#e7e9f2;}
+  .rank-row.top3{border-color:#f1e4d6;}
+  .rank-row.me{background:linear-gradient(180deg,#f6f6ff,#fff);border-color:#dcdcfb;}
+  .rank-row.top1.me{border-color:#fde68a;}
+  .rr-main{display:flex;align-items:center;gap:10px;}
+  .rank-no{flex:0 0 30px;text-align:center;font-size:15px;font-weight:800;color:#a3a9ba;font-variant-numeric:tabular-nums;}
+  .rank-no.medal{font-size:21px;line-height:1;}
+  .rr-who{flex:1;min-width:0;}
+  .rr-who b{display:block;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rr-who span{display:block;font-size:11px;color:var(--muted);margin-top:3px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .me-tag{display:inline-block;font-style:normal;font-size:10px;font-weight:700;color:var(--primary);
+    background:#eceafe;border-radius:6px;padding:1px 6px;margin-left:5px;vertical-align:1px;}
+  .rr-val{flex:0 0 auto;text-align:right;}
+  .rr-val b{font-size:20px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums;
+    background:linear-gradient(135deg,var(--primary),var(--primary-2));
+    -webkit-background-clip:text;background-clip:text;color:transparent;}
+  .rr-val span{font-size:10.5px;color:var(--muted);margin-left:2px;}
+  .rr-meta{font-size:11px;color:var(--muted);line-height:1.6;margin-top:8px;}
+  .rr-meta b{color:#4b5162;font-weight:700;font-variant-numeric:tabular-nums;}
+  .rank-bar{height:5px;border-radius:5px;background:#eef0f8;margin-top:8px;overflow:hidden;}
+  .rank-bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#6366f1,#a855f7);
+    transition:width .35s ease;}
+  .rank-row.top1 .rank-bar i{background:linear-gradient(90deg,#f59e0b,#fbbf24);}
+  .rank-row.top2 .rank-bar i{background:linear-gradient(90deg,#94a3b8,#cbd5e1);}
+  .rank-row.top3 .rank-bar i{background:linear-gradient(90deg,#d97706,#f0b27a);}
+  .rank-tip{font-size:11px;color:#b3b8c9;line-height:1.7;margin:14px 2px 0;}
+
+  /* toast */
+  .toast{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translate(-50%,20px);
+    background:rgba(31,36,48,.92);color:#fff;padding:11px 20px;border-radius:999px;font-size:14px;
+    opacity:0;pointer-events:none;transition:.25s;z-index:99;max-width:80vw;text-align:center;}
+  .toast.show{opacity:1;transform:translate(-50%,0);}
+
+  .sync-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);
+    background:#eef0f7;border-radius:999px;padding:4px 10px;}
+  .sync-badge .d{width:6px;height:6px;border-radius:50%;background:#c1c6d6;}
+  .sync-badge.ok .d{background:#22c55e;}
+  .sync-badge.err .d{background:#ef4444;}
+
+  .hidden{display:none !important;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  @media (min-width:521px){
+    .app{min-height:calc(100vh - 40px);margin:20px 0;border-radius:26px;overflow:hidden;box-shadow:0 20px 60px rgba(31,36,48,.12);}
+    body{align-items:flex-start;}
+    header{border-radius:0;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="brand-row"><i class="dot"></i><span id="groupName">一起学习打卡群</span></div>
+    <div class="date-line">
+      <span class="date-big" id="todayBig">--</span>
+      <span class="date-week" id="todayWeek"></span>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><b id="statCount">0</b><span>今日打卡人数</span></div>
+      <div class="stat"><b id="statPlan">0</b><span>计划总时长(h)</span></div>
+      <div class="stat"><b id="statActual">0</b><span>实际总时长(h)</span></div>
+    </div>
+    <div class="today-bar">
+      <span>📋 已定计划 <b id="todayPlanCount">0</b> 人</span>
+      <span>✅ 已交结果 <b id="todayResultCount">0</b> 人</span>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button id="tabForm" class="active">打卡</button>
+    <button id="tabWall">打卡墙</button>
+    <button id="tabRank">排行榜</button>
+  </div>
+
+  <main>
+    <!-- ================= 打卡表单 ================= -->
+    <section id="viewForm">
+      <div class="card">
+
+        <!-- 一天两次：早上定计划 / 晚上交结果 -->
+        <div class="phase-switch" id="phaseSwitch">
+          <button data-phase="plan" class="on">
+            <span class="ps-ico">📋</span>
+            <span class="ps-txt"><b>① 早上 · 定计划</b><small>预计学什么 / 多久</small></span>
+            <em class="ps-done hidden" id="planDone">已定</em>
+          </button>
+          <button data-phase="result">
+            <span class="ps-ico">✅</span>
+            <span class="ps-txt"><b>② 晚上 · 交结果</b><small>实际多久 / 成果</small></span>
+            <em class="ps-done hidden" id="resultDone">已交</em>
+          </button>
+        </div>
+        <div class="phase-hint" id="phaseHint"></div>
+
+        <div class="progress"><div class="bar"><i id="progressBar"></i></div></div>
+        <div class="step-label">
+          <span><b id="phaseTag">定计划</b> · 第 <b id="stepNow">1</b>/<b id="stepTotal">4</b> 步</span>
+          <span id="syncBadge" class="sync-badge"><i class="d"></i><em id="syncText" style="font-style:normal">本机模式</em></span>
+        </div>
+
+        <div class="viewport" id="viewport">
+          <div class="track" id="track">
+
+            <!-- 通用：姓名（两个阶段共用） -->
+            <div class="step" id="pageName">
+              <h2>先报个到 👋</h2>
+              <p class="hint">写清楚你是谁，方便大家互相监督。</p>
+              <div class="field">
+                <label>打卡姓名 <span class="req">*</span></label>
+                <input type="text" id="inName" placeholder="例如：张三" maxlength="12" autocomplete="off">
+              </div>
+              <div class="field">
+                <label>专业 / 方向（选填）</label>
+                <input type="text" id="inMajor" placeholder="例如：计算机 / 数学 / 考研" maxlength="20" autocomplete="off">
+              </div>
+              <div class="plan-ref hidden" id="planRef"></div>
+            </div>
+
+            <!-- ① 计划打卡：时长 -->
+            <div class="step" id="pagePlanHours">
+              <h2>今天打算学多久？⏳</h2>
+              <p class="hint">早上先定个目标，晚上回来填实际时长对比一下。</p>
+              <div class="big-num"><b id="planNum">2.0</b><span>小时</span></div>
+              <input type="range" id="inPlan" min="0.5" max="12" step="0.5" value="2">
+              <div class="chips" id="planChips">
+                <button data-v="1">1h</button><button data-v="2" class="on">2h</button><button data-v="3">3h</button>
+                <button data-v="4">4h</button><button data-v="6">6h</button><button data-v="8">8h</button>
+              </div>
+            </div>
+
+            <!-- ① 计划打卡：内容 -->
+            <div class="step" id="pagePlanTask">
+              <h2>今天准备学什么？📚</h2>
+              <p class="hint">写具体一点，晚上交结果时可以直接对照完成情况。</p>
+              <div class="field">
+                <label>计划学习内容 <span class="req">*</span></label>
+                <textarea id="inPlanTask" placeholder="例如：概率论第 3 章 + 10 道真题" maxlength="300"></textarea>
+              </div>
+            </div>
+
+            <!-- ① 计划打卡：确认 -->
+            <div class="step" id="pagePlanConfirm">
+              <h2>确认计划，今天开个好头 ✅</h2>
+              <p class="hint">提交后，晚上回来再交一次「实际结果」，一天两次打卡更清晰。</p>
+              <div class="summary" id="summaryPlan"></div>
+            </div>
+
+            <!-- ② 结果打卡：实际时长 + 时间 -->
+            <div class="step" id="pageActual">
+              <h2>今天实际学了多久？⏱️</h2>
+              <p class="hint">按真实情况填就好，和早上的计划对比看看。</p>
+              <div class="big-num" style="margin-bottom:14px;"><b id="actualNum">2.0</b><span>小时</span></div>
+              <input type="range" id="inActual" min="0" max="14" step="0.5" value="2" class="green">
+              <div class="chips" id="actualChips">
+                <button data-v="0.5">0.5h</button><button data-v="1">1h</button><button data-v="2" class="on">2h</button>
+                <button data-v="3">3h</button><button data-v="4">4h</button><button data-v="6">6h</button>
+                <button data-v="8">8h</button>
+              </div>
+              <div class="field" style="margin-top:18px;">
+                <label>这次打卡时间</label>
+                <input type="time" id="inTime">
+              </div>
+            </div>
+
+            <!-- ② 结果打卡：成果 + 完成情况 -->
+            <div class="step" id="pageResultTask">
+              <h2>今天学出了什么成果？🏆</h2>
+              <p class="hint">写具体产出，比只写「学了 2 小时」更有意义。</p>
+              <div class="plan-ref" id="planCompare"></div>
+              <div class="field" style="margin-top:14px;">
+                <label>实际学习成果 <span class="req">*</span></label>
+                <textarea id="inResultTask" placeholder="例如：看完第 3 章，做完 10 道真题，正确率 80%" maxlength="300"></textarea>
+              </div>
+              <div class="field">
+                <label>完成情况（对比早上计划）</label>
+                <div class="status-grid" id="statusGrid">
+                  <button data-v="已完成" class="on">已完成</button>
+                  <button data-v="部分完成">部分完成</button>
+                  <button data-v="未完成">未完成</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ② 结果打卡：明日计划 -->
+            <div class="step" id="pageTomorrow">
+              <h2>明天想怎么安排？🌙</h2>
+              <p class="hint">顺手写一句，明天早上定计划时可以参考。</p>
+              <div class="field">
+                <label>明日计划（选填）</label>
+                <textarea id="inTomorrow" placeholder="明天准备学什么…" maxlength="200" style="min-height:80px;"></textarea>
+              </div>
+            </div>
+
+            <!-- ② 结果打卡：确认 -->
+            <div class="step" id="pageResultConfirm">
+              <h2>确认成果，今天收个尾 ✅</h2>
+              <p class="hint">提交后会更新「打卡墙」上你今天的结果，计划和成果就都齐了。</p>
+              <div class="summary" id="summaryResult"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="step-foot">
+          <div class="foot-row">
+            <button class="btn ghost hidden" id="btnPrev">上一步</button>
+            <button class="btn primary" id="btnNext">下一步</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 打卡墙 ================= -->
+    <section id="viewWall" class="hidden">
+      <div class="wall-head">
+        <h2>今日打卡墙</h2>
+        <button class="refresh" id="btnRefresh">刷新</button>
+      </div>
+      <div class="wall-sub" id="wallSub"></div>
+      <div class="filter">
+        <button id="filterToday" class="on">今日</button>
+        <button id="filterAll">全部</button>
+      </div>
+      <div id="wallList"></div>
+    </section>
+
+    <!-- ================= 排行榜 ================= -->
+    <section id="viewRank" class="hidden">
+      <div class="wall-head">
+        <h2>学习排行榜</h2>
+        <button class="refresh" id="btnRankRefresh">刷新</button>
+      </div>
+      <div class="rank-sum" id="rankSum"></div>
+      <div class="rank-note" id="rankNote"></div>
+      <div class="filter" id="rankRange">
+        <button data-r="week" class="on">本周</button>
+        <button data-r="month">本月</button>
+        <button data-r="all">全部</button>
+      </div>
+      <div class="rank-sort">
+        <span class="lbl">排名依据</span>
+        <div class="chips" id="rankSort">
+          <button data-s="hours" class="on">学习时长</button>
+          <button data-s="count">打卡次数</button>
+          <button data-s="streak">连续天数</button>
+        </div>
+      </div>
+      <div id="rankList"></div>
+      <p class="rank-tip">连续天数 = 从最近一次打卡往前连续的天数；打卡次数按「计划 / 结果」分别计一次；学习时间取实际时长。</p>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   配置区
+   - groupName：群名，显示在顶部
+   - remote.url：共享数据接口地址（GET 返回 {"records":[...]}，
+     PUT 保存同样结构）。留空 = 本机演示模式（数据只存这台设备）。
+     上线后把下面这行填成你的后端地址，全群即可同步。
+   ===================================================================== */
+const CONFIG = {
+  groupName: '一起学习打卡群',
+  remote: {
+    // 同域部署（用本项目 server.mjs 启动或部署到服务器）时自动走 /api/checkins；
+    // 前后端分离时改成完整地址，例如 'https://api.example.com/api/checkins'；
+    // 直接双击打开文件（file://）时留空 = 本机模式，数据只存在当前设备。
+    url: location.protocol === 'file:' ? '' : '/api/checkins',
+    pollInterval: 15000      // 自动刷新间隔（毫秒）
+  }
+};
+
+/* ---------------- 基础工具 ---------------- */
+const $ = (id) => document.getElementById(id);
+const WEEK = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+const pad = (n) => String(n).padStart(2, '0');
+const dateStr = (d) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const nowTime = () => { const d = new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const fmtH = (n) => Number(n).toFixed(1).replace(/\.0$/, '');
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const short = (s, n) => { s = String(s || ''); return s.length > n ? s.slice(0, n) + '…' : s; };
+
+let records = [];          // 全部打卡记录
+let today = dateStr(new Date());
+let phase = 'plan';        // plan = 早上定计划 | result = 晚上交结果
+let step = 0;              // 当前阶段内的步骤序号
+let filterMode = 'today';  // today | all
+let rankRange = 'week';    // week | month | all
+let rankSort = 'hours';    // hours | count | streak
+let submitting = false;
+
+/* 每个阶段包含哪些页面（页面 DOM 顺序固定，按需显示） */
+const PHASE_PAGES = {
+  plan:   ['name', 'planHours', 'planTask', 'planConfirm'],
+  result: ['name', 'actual', 'resultTask', 'tomorrow', 'resultConfirm']
+};
+const PHASE_LABEL = { plan: '定计划', result: '交结果' };
+const PAGE_EL = {
+  name: 'pageName', planHours: 'pagePlanHours', planTask: 'pagePlanTask', planConfirm: 'pagePlanConfirm',
+  actual: 'pageActual', resultTask: 'pageResultTask', tomorrow: 'pageTomorrow', resultConfirm: 'pageResultConfirm'
+};
+
+const draft = {
+  name: '', major: '', planHours: 2, planTask: '', actualHours: 2,
+  time: nowTime(), task: '', status: '已完成', tomorrow: ''
+};
+/* 用户是否在当前阶段手动改过内容（改过就不再用已保存的记录覆盖） */
+const touched = { plan: false, result: false };
+
+/* ---------------- 本地存储 ---------------- */
+const LS_KEY = 'study-checkin-v1';
+const LS_NAME = 'study-checkin-name';
+
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    records = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(records)) records = [];
+  } catch (e) { records = []; }
+}
+function saveLocal() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(records)); } catch (e) {}
+}
+
+/* ---------------- 远程同步 ---------------- */
+let syncState = 'local';   // local | ok | err
+let pendingSync = false;   // 本地有记录还没成功传到服务器
+let syncing = false;
+let warnedSync = false;
+
+function syncFailHint() {
+  if (warnedSync || !CONFIG.remote.url) return;
+  warnedSync = true;
+  toast('同步失败：记录先存本机，网络恢复后会自动补传');
+}
+
+function setSyncBadge() {
+  const badge = $('syncBadge');
+  const text = $('syncText');
+  badge.classList.remove('ok', 'err');
+  if (!CONFIG.remote.url) {
+    text.textContent = '本机模式';
+    badge.title = '未配置共享后端：数据只保存在当前设备';
+  } else if (pendingSync) {
+    text.textContent = '待同步';
+    badge.classList.add('err');
+    badge.title = '有记录还没上传成功，会自动重试';
+  } else if (syncState === 'ok') {
+    text.textContent = '已同步';
+    badge.classList.add('ok');
+    badge.title = '已与服务器同步';
+  } else if (syncState === 'err') {
+    text.textContent = '同步失败';
+    badge.classList.add('err');
+    badge.title = '连不上服务器：记录只在本机，会自动重试';
+  } else {
+    text.textContent = '同步中';
+    badge.title = '正在与服务器同步';
+  }
+}
+
+async function pullRemote() {
+  if (!CONFIG.remote.url) return;
+  try {
+    const res = await fetch(CONFIG.remote.url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const remoteRecords = Array.isArray(data) ? data : (data.records || []);
+    const remoteIds = new Set(remoteRecords.filter(r => r && r.id).map(r => r.id));
+    // 本地有、服务器没有的记录（离线时填的 / 后端刚上线时的旧记录）→ 稍后补传
+    const localOnly = records.some(r => r && r.id && !remoteIds.has(r.id));
+    // 按 id 合并，远端优先覆盖同 id，保留本地未上传的
+    const map = new Map();
+    records.forEach(r => map.set(r.id, r));
+    remoteRecords.forEach(r => { if (r && r.id) map.set(r.id, r); });
+    records = dedupeDaily(Array.from(map.values()));
+    syncState = 'ok';
+    if (localOnly) pendingSync = true;
+    saveLocal();
+    setSyncBadge();
+    renderStats();
+    if (!$('viewWall').classList.contains('hidden')) renderWall();
+    if (!$('viewRank').classList.contains('hidden')) renderRank();
+    if (pendingSync) flushRemote();
+  } catch (e) {
+    syncState = 'err';
+    setSyncBadge();
+    syncFailHint();
+  }
+}
+
+async function pushRemote() {
+  if (!CONFIG.remote.url) return true;
+  try {
+    const res = await fetch(CONFIG.remote.url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ records })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    syncState = 'ok';
+    pendingSync = false;
+    setSyncBadge();
+    return true;
+  } catch (e) {
+    syncState = 'err';
+    pendingSync = true;
+    setSyncBadge();
+    syncFailHint();
+    return false;
+  }
+}
+
+/* 有本地记录没传上去时补传；失败不报错，等下一轮轮询/恢复网络时再试 */
+async function flushRemote() {
+  if (!CONFIG.remote.url || syncing) return false;
+  if (!pendingSync) return true;
+  syncing = true;
+  try { return await pushRemote(); }
+  finally { syncing = false; }
+}
+
+/* ---------------- 顶部日期与统计 ---------------- */
+function refreshToday() {
+  const d = new Date();
+  const ds = dateStr(d);
+  if (ds !== today) {
+    // 跨天：清空旧输入，回到「定计划」
+    today = ds;
+    touched.plan = false;
+    touched.result = false;
+    renderStats();
+    setPhase(pickDefaultPhase());
+    if (!$('viewWall').classList.contains('hidden')) renderWall();
+    if (!$('viewRank').classList.contains('hidden')) renderRank();
+  }
+  $('todayBig').textContent = `${d.getMonth()+1}月${d.getDate()}日`;
+  $('todayWeek').textContent = WEEK[d.getDay()];
+}
+
+function todayRecords() {
+  return records.filter(r => r.date === today);
+}
+
+/* 旧版记录没有 phase 字段，一条记录同时含计划和结果，这里做兼容判断 */
+function isPlanRec(r) {
+  return r.phase === 'plan' || (!r.phase && r.planHours != null);
+}
+function isResultRec(r) {
+  return r.phase === 'result' || (!r.phase && r.actualHours != null);
+}
+
+function findRecord(name, ph) {
+  if (!name) return null;
+  return records.find(r => r.date === today && r.name === name && r.phase === ph) || null;
+}
+
+function currentName() {
+  return (($('inName') && $('inName').value) || localStorage.getItem(LS_NAME) || '').trim();
+}
+
+function statusFor(name) {
+  if (!name) return { plan: false, result: false, planRec: null, resultRec: null };
+  const recs = todayRecords().filter(r => r.name === name);
+  return {
+    plan: recs.some(isPlanRec),
+    result: recs.some(isResultRec),
+    planRec: findRecord(name, 'plan'),
+    resultRec: findRecord(name, 'result')
+  };
+}
+
+/* 同一人同一天同一阶段可能因换设备/清缓存出现重复记录：统计和展示都只取最新一条 */
+function dedupeDaily(list) {
+  const map = new Map();
+  const ts = (r) => Number(r.updatedAt || r.createdAt) || 0;
+  list.forEach(r => {
+    if (!r) return;
+    const key = (r.name || '') + '|' + (r.date || '') + '|' + (r.phase || 'legacy');
+    const prev = map.get(key);
+    if (!prev) { map.set(key, r); return; }
+    if (ts(r) >= ts(prev)) map.set(key, r);
+  });
+  return Array.from(map.values());
+}
+
+function renderStats() {
+  const todays = dedupeDaily(todayRecords());
+  const planNames = new Set(), resultNames = new Set(), anyNames = new Set();
+  let planSum = 0, actualSum = 0;
+  todays.forEach(r => {
+    anyNames.add(r.name);
+    if (isPlanRec(r)) { planNames.add(r.name); planSum += Number(r.planHours) || 0; }
+    if (isResultRec(r)) { resultNames.add(r.name); actualSum += Number(r.actualHours) || 0; }
+  });
+  $('statCount').textContent = anyNames.size;
+  $('statPlan').textContent = fmtH(planSum);
+  $('statActual').textContent = fmtH(actualSum);
+  $('todayPlanCount').textContent = planNames.size;
+  $('todayResultCount').textContent = resultNames.size;
+  renderPhaseBadges();
+  renderPhaseHint();
+}
+
+/* ---------------- 阶段：早上定计划 / 晚上交结果 ---------------- */
+function pickDefaultPhase() {
+  const name = currentName();
+  if (name) {
+    const st = statusFor(name);
+    if (!st.plan) return 'plan';       // 还没定计划 → 先定计划
+    return 'result';                   // 计划已定 → 交结果（计划结果都有时也默认看结果）
+  }
+  return new Date().getHours() >= 17 ? 'result' : 'plan';
+}
+
+function setPhase(p, opts) {
+  opts = opts || {};
+  if (p !== 'plan' && p !== 'result') return;
+  phase = p;
+  step = 0;
+  const track = $('track');
+  track.style.transition = 'none';     // 切换阶段时不要横滑动效
+  applyStep();
+  void track.offsetWidth;              // 强制重排，让位移立即生效
+  track.style.transition = '';
+  document.querySelectorAll('#phaseSwitch button').forEach(b =>
+    b.classList.toggle('on', b.dataset.phase === p));
+  if (opts.prefill !== false) {
+    if (!touched[p]) prefillPhase();
+    renderPlanRef();
+  }
+  renderPhaseBadges();
+  renderPhaseHint();
+}
+
+function renderPhaseBadges() {
+  const st = statusFor(currentName());
+  $('planDone').classList.toggle('hidden', !st.plan);
+  $('resultDone').classList.toggle('hidden', !st.result);
+}
+
+function renderPhaseHint() {
+  const el = $('phaseHint');
+  const name = currentName();
+  if (!name) {
+    el.innerHTML = '早上定计划 · 晚上交结果，一天两次打卡，计划和成果都留档 😉';
+    return;
+  }
+  const st = statusFor(name);
+  if (!st.plan && !st.result) {
+    el.innerHTML = '今天还没打卡 —— 先花 30 秒<b>定个计划</b>，晚上回来交结果 ✨';
+  } else if (st.plan && !st.result) {
+    const rec = st.planRec || {};
+    el.innerHTML = `计划已定：<b>${fmtH(rec.planHours)}h</b> · ${escapeHtml(short(rec.planTask, 16))} —— 晚上记得回来交结果 ⏰`;
+  } else if (!st.plan && st.result) {
+    el.innerHTML = '今天已交结果，但<b>还没定计划</b>，可以回「① 定计划」补一条 📋';
+  } else {
+    el.innerHTML = '今天的<b>计划 + 结果</b>都完成啦 🎉 明天继续保持';
+  }
+}
+
+/* 已保存记录 → 回填表单（用于修改 / 跨设备同步后展示） */
+function prefillPhase() {
+  const name = currentName();
+  if (phase === 'plan') {
+    const rec = findRecord(name, 'plan');
+    if (rec) {
+      setPlanHours(rec.planHours);
+      $('inPlanTask').value = rec.planTask || '';
+      if (rec.time) $('inTime').value = rec.time;
+    } else {
+      $('inPlanTask').value = '';
+      $('inTime').value = nowTime();
+    }
+  } else {
+    const plan = findRecord(name, 'plan');
+    const rec = findRecord(name, 'result');
+    if (rec) {
+      setActualHours(rec.actualHours);
+      $('inResultTask').value = rec.task || '';
+      setStatus(rec.status || '已完成');
+      $('inTomorrow').value = rec.tomorrow || '';
+      if (rec.time) $('inTime').value = rec.time;
+    } else {
+      $('inResultTask').value = '';
+      $('inTomorrow').value = '';
+      setStatus('已完成');
+      $('inTime').value = nowTime();
+      // 实际时长默认沿用早上计划，方便快速提交
+      if (plan && plan.planHours != null) setActualHours(plan.planHours);
+    }
+  }
+  renderPlanRef();
+}
+
+function renderPlanRef() {
+  const name = currentName();
+  const plan = findRecord(name, 'plan');
+  const ref = $('planRef');
+  if (phase !== 'result') {
+    ref.classList.add('hidden');
+  } else {
+    ref.classList.remove('hidden');
+    ref.innerHTML = plan ? `
+      <div class="pr-title">📋 早上定的计划</div>
+      <div class="pr-body"><b>${fmtH(plan.planHours)} 小时</b><span class="pr-time">${escapeHtml(plan.time || '')} 定</span>
+        <p>${escapeHtml(plan.planTask || '未填写内容')}</p></div>`
+      : `
+      <div class="pr-title">📋 早上还没定计划</div>
+      <div class="pr-body muted">没关系，先交今天的结果，也可以回「定计划」补一条。</div>`;
+  }
+  $('planCompare').innerHTML = plan ? `
+    <div class="pr-title">📋 对比早上计划</div>
+    <div class="pr-body"><b>${fmtH(plan.planHours)} 小时</b><p>${escapeHtml(plan.planTask || '未填写内容')}</p></div>`
+    : `
+    <div class="pr-title">📋 早上没有定计划</div>
+    <div class="pr-body muted">直接写今天的实际成果就好。</div>`;
+}
+
+/* ---------------- 表单：步骤切换 ---------------- */
+function applyStep() {
+  const pages = PHASE_PAGES[phase];
+  Object.keys(PAGE_EL).forEach(key => {
+    $(PAGE_EL[key]).classList.toggle('hidden', pages.indexOf(key) === -1);
+  });
+  $('track').style.transform = `translateX(-${step * 100}%)`;
+  $('stepNow').textContent = step + 1;
+  $('stepTotal').textContent = pages.length;
+  $('phaseTag').textContent = PHASE_LABEL[phase];
+  $('progressBar').style.width = ((step + 1) / pages.length * 100) + '%';
+  $('btnPrev').classList.toggle('hidden', step === 0);
+  const last = step === pages.length - 1;
+  $('btnNext').textContent = last ? (phase === 'plan' ? '提交计划' : '提交结果') : '下一步';
+  if (pages[step] === 'planConfirm' || pages[step] === 'resultConfirm') renderSummary();
+  if (step === 0) setTimeout(() => { if (!$('inName').value) $('inName').focus(); }, 120);
+}
+
+function nextStep() {
+  if (!validateStep()) return;
+  const pages = PHASE_PAGES[phase];
+  if (step === pages.length - 1) { submitCheckin(); return; }
+  step++;
+  applyStep();
+}
+function prevStep() { if (step > 0) { step--; applyStep(); } }
+
+function toast(msg) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function validateStep() {
+  const key = PHASE_PAGES[phase][step];
+  if (key === 'name') {
+    if (!$('inName').value.trim()) { toast('请先填写打卡姓名'); $('inName').focus(); return false; }
+  }
+  if (key === 'planTask') {
+    if (!$('inPlanTask').value.trim()) { toast('请填写计划学习内容'); $('inPlanTask').focus(); return false; }
+  }
+  if (key === 'resultTask') {
+    if (!$('inResultTask').value.trim()) { toast('请填写实际学习成果'); $('inResultTask').focus(); return false; }
+  }
+  return true;
+}
+
+function collectDraft() {
+  draft.name = $('inName').value.trim();
+  draft.major = $('inMajor').value.trim();
+  draft.planHours = Number($('inPlan').value);
+  draft.planTask = $('inPlanTask').value.trim();
+  draft.actualHours = Number($('inActual').value);
+  draft.time = $('inTime').value || nowTime();
+  draft.task = $('inResultTask').value.trim();
+  draft.status = currentStatus();
+  draft.tomorrow = $('inTomorrow').value.trim();
+}
+
+function rowsHtml(rows) {
+  return rows.map(([k, v]) =>
+    `<div class="row"><span>${escapeHtml(k)}</span><b>${escapeHtml(String(v))}</b></div>`).join('');
+}
+
+function renderSummary() {
+  collectDraft();
+  const who = draft.name + (draft.major ? `（${draft.major}）` : '');
+  if (phase === 'plan') {
+    $('summaryPlan').innerHTML = rowsHtml([
+      ['姓名', who],
+      ['计划时长', draft.planHours + ' 小时'],
+      ['计划内容', draft.planTask || '—']
+    ]);
+  } else {
+    const plan = findRecord(draft.name, 'plan');
+    $('summaryResult').innerHTML = rowsHtml([
+      ['姓名', who],
+      ['计划 → 实际', (plan ? fmtH(plan.planHours) + ' 小时' : '未定计划') + ' → ' + draft.actualHours + ' 小时'],
+      ['打卡时间', draft.time],
+      ['完成情况', draft.status],
+      ['学习成果', draft.task || '—'],
+      ['明日计划', draft.tomorrow || '—']
+    ]);
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------------- 小时数 / 状态：同步滑块与快捷按钮 ---------------- */
+function setPlanHours(v) {
+  v = Math.min(12, Math.max(0.5, Number(v) || 0.5));
+  $('inPlan').value = v;
+  $('planNum').textContent = Number(v).toFixed(1);
+  document.querySelectorAll('#planChips button').forEach(b =>
+    b.classList.toggle('on', Number(b.dataset.v) === v));
+  draft.planHours = v;
+}
+
+function setActualHours(v) {
+  v = Math.min(14, Math.max(0, Number(v) || 0));
+  $('inActual').value = v;
+  $('actualNum').textContent = Number(v).toFixed(1);
+  document.querySelectorAll('#actualChips button').forEach(b =>
+    b.classList.toggle('on', Number(b.dataset.v) === v));
+  draft.actualHours = v;
+}
+
+function setStatus(v) {
+  draft.status = v;
+  document.querySelectorAll('#statusGrid button').forEach(b =>
+    b.classList.toggle('on', b.dataset.v === v));
+}
+function currentStatus() {
+  const on = document.querySelector('#statusGrid button.on');
+  return on ? on.dataset.v : '已完成';
+}
+
+/* ---------------- 提交（两次打卡共用） ---------------- */
+async function submitCheckin() {
+  if (submitting) return;
+  collectDraft();
+  submitting = true;
+  const isPlan = phase === 'plan';
+  const patch = isPlan
+    ? { phase: 'plan', planHours: draft.planHours, planTask: draft.planTask, time: nowTime(), major: draft.major }
+    : { phase: 'result', actualHours: draft.actualHours, task: draft.task, status: draft.status,
+        tomorrow: draft.tomorrow, time: draft.time, major: draft.major };
+
+  // 同一天同一人同一阶段只保留一条：再次提交视为修改
+  let rec = findRecord(draft.name, phase);
+  const updated = Boolean(rec);
+  if (rec) {
+    if (isPlan && rec.time) patch.time = rec.time;   // 保留最初定计划的时间
+    Object.assign(rec, patch, { updatedAt: Date.now() });
+  } else {
+    rec = { id: uid(), date: today, name: draft.name, createdAt: Date.now(), ...patch };
+    records.push(rec);
+  }
+  saveLocal();
+  renderStats();
+
+  const btn = $('btnNext');
+  btn.disabled = true;
+  btn.textContent = '提交中…';
+  const ok = await pushRemote();
+  btn.disabled = false;
+
+  // 记住姓名
+  try { localStorage.setItem(LS_NAME, draft.name); } catch (e) {}
+
+  touched[phase] = false;
+  step = 0;
+  applyStep();
+  switchTab('wall');
+  // 注意：未同步时只提示「待同步」，不能被成功提示覆盖
+  if (!ok && CONFIG.remote.url) {
+    toast(isPlan ? '⚠️ 计划已存本机，暂未同步（自动重试中）' : '⚠️ 结果已存本机，暂未同步（自动重试中）');
+  } else if (isPlan) {
+    toast(updated ? '计划已更新 ✅ 晚上记得回来交结果' : '计划已保存 ✅ 晚上记得回来交结果');
+  } else {
+    toast(updated ? '结果已更新 🎉' : '结果已提交 🎉');
+  }
+  submitting = false;
+}
+
+/* ---------------- 打卡墙 ---------------- */
+function statusTag(status) {
+  if (!status) return '';
+  const cls = status === '已完成' ? 'green' : status === '部分完成' ? 'amber' : 'red';
+  return `<span class="tag ${cls}">${escapeHtml(status)}</span>`;
+}
+
+/* 按「日期 + 姓名」把两次打卡合并成一张卡片；兼容旧版一条记录含计划+结果 */
+function groupRecords(list) {
+  const groups = new Map();
+  const keyOf = (r) => (filterMode === 'all' ? r.date + '|' : '') + (r.name || '');
+  const ensure = (r) => {
+    const key = keyOf(r);
+    let g = groups.get(key);
+    if (!g) {
+      g = { key, name: r.name, major: r.major || '', date: r.date, plan: null, result: null, createdAt: 0 };
+      groups.set(key, g);
+    }
+    return g;
+  };
+  // 先处理新格式（带 phase），保证其优先于旧版记录
+  list.forEach(r => {
+    if (!r || !r.name || !r.phase) return;
+    const g = ensure(r);
+    g.major = r.major || g.major;
+    g.date = r.date;
+    g.createdAt = Math.max(g.createdAt, r.createdAt || 0);
+    if (r.phase === 'plan') {
+      g.plan = { hours: r.planHours, task: r.planTask, time: r.time };
+    } else if (r.phase === 'result') {
+      g.result = { hours: r.actualHours, task: r.task, status: r.status, tomorrow: r.tomorrow, time: r.time };
+    }
+  });
+  // 再补旧格式记录（没有 phase 的：计划和结果都在一条里）
+  list.forEach(r => {
+    if (!r || !r.name || r.phase) return;
+    const g = ensure(r);
+    g.major = r.major || g.major;
+    g.date = r.date;
+    g.createdAt = Math.max(g.createdAt, r.createdAt || 0);
+    if (!g.plan && r.planHours != null) {
+      g.plan = { hours: r.planHours, task: r.task, time: r.time };
+    }
+    if (!g.result && r.actualHours != null) {
+      g.result = { hours: r.actualHours, task: r.task, status: r.status, tomorrow: r.tomorrow, time: r.time };
+    }
+  });
+  return Array.from(groups.values()).sort((a, b) => b.createdAt - a.createdAt);
+}
+
+function cardHtml(g) {
+  const initial = (g.name || '?').slice(0, 1);
+  const planBlock = g.plan ? `
+    <div class="rec-phase plan">
+      <div class="ph-head">
+        <span class="tag">📋 计划 ${g.plan.hours != null ? fmtH(g.plan.hours) + 'h' : '—'}</span>
+        <span class="ph-time">${escapeHtml(g.plan.time || '')} 定</span>
+      </div>
+      <div class="rec-task">${escapeHtml(g.plan.task || '未填写计划内容')}</div>
+    </div>` : `
+    <div class="rec-phase ghost">📋 还没定计划</div>`;
+  const resultBlock = g.result ? `
+    <div class="rec-phase result">
+      <div class="ph-head">
+        <span class="tag green">✅ 实际 ${g.result.hours != null ? fmtH(g.result.hours) + 'h' : '—'}</span>
+        ${statusTag(g.result.status)}
+        <span class="ph-time">${escapeHtml(g.result.time || '')} 交</span>
+      </div>
+      <div class="rec-task">${escapeHtml(g.result.task || '未填写学习成果')}</div>
+      ${g.result.tomorrow ? `<div class="rec-plan"><b>明日计划：</b>${escapeHtml(g.result.tomorrow)}</div>` : ''}
+    </div>` : `
+    <div class="rec-phase ghost">⏳ 结果待打卡</div>`;
+  const state = !g.result
+    ? (g.plan ? '<span class="rec-state amber">待交结果</span>' : '')
+    : (!g.plan ? '<span class="rec-state gray">缺计划</span>' : '');
+  const dateLabel = filterMode === 'all' ? `<div class="rec-date">${escapeHtml(g.date)}</div>` : '';
+  return `<div class="rec">
+    <div class="rec-top">
+      <div class="avatar">${escapeHtml(initial)}</div>
+      <div class="rec-name"><b>${escapeHtml(g.name || '')}</b><span>${escapeHtml(g.major || '—')}</span></div>
+      ${state}
+    </div>
+    ${planBlock}
+    ${resultBlock}
+    ${dateLabel}
+  </div>`;
+}
+
+function renderWall() {
+  const list = dedupeDaily(filterMode === 'today' ? todayRecords() : records.slice());
+  const groups = groupRecords(list);
+
+  if (filterMode === 'today') {
+    const planCount = groups.filter(g => g.plan).length;
+    const resultCount = groups.filter(g => g.result).length;
+    const pending = groups.filter(g => g.plan && !g.result).length;
+    $('wallSub').innerHTML = `📋 已定计划 <b>${planCount}</b> 人 · ✅ 已交结果 <b>${resultCount}</b> 人` +
+      (pending ? ` · ⏳ 待交结果 <b>${pending}</b> 人` : '');
+  } else {
+    $('wallSub').innerHTML = `共 <b>${groups.length}</b> 条打卡记录 · 计划和结果分开留档`;
+  }
+
+  const box = $('wallList');
+  if (!groups.length) {
+    box.innerHTML = filterMode === 'today'
+      ? `<div class="empty"><div class="icon">🌱</div>今天还没有人打卡。<br>早上定计划、晚上交结果，来做第一个吧！</div>`
+      : `<div class="empty"><div class="icon">🌱</div>还没有任何打卡记录。</div>`;
+    return;
+  }
+  box.innerHTML = groups.map(cardHtml).join('');
+}
+
+/* ---------------- 排行榜 ---------------- */
+const RANK_RANGE_LABEL = { week: '本周', month: '本月', all: '全部' };
+
+function parseYmd(s) {
+  const p = String(s || '').split('-').map(Number);
+  return new Date(p[0] || 1970, (p[1] || 1) - 1, p[2] || 1);
+}
+function ymdShift(s, n) {
+  const d = parseYmd(s);
+  return dateStr(new Date(d.getFullYear(), d.getMonth(), d.getDate() + n));
+}
+/* 排行榜统计起点：本周从周一算，本月从 1 号算，全部不限 */
+function rankStartDate() {
+  const now = new Date();
+  if (rankRange === 'week') {
+    const off = (now.getDay() + 6) % 7;       // 周一为一周起点
+    return dateStr(new Date(now.getFullYear(), now.getMonth(), now.getDate() - off));
+  }
+  if (rankRange === 'month') return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01`;
+  return '0000-01-01';
+}
+
+/* 连续打卡天数：当天有任意记录（计划或结果）就算打卡；从今天（今天没打则从昨天）往前数 */
+function buildStreaks() {
+  const dateSets = new Map();
+  records.forEach(r => {
+    if (!r || !r.name || !r.date) return;
+    if (!dateSets.has(r.name)) dateSets.set(r.name, new Set());
+    dateSets.get(r.name).add(r.date);
+  });
+  const todayStr = dateStr(new Date());
+  const yesterday = ymdShift(todayStr, -1);
+  const streaks = new Map();
+  dateSets.forEach((set, name) => {
+    let cur = set.has(todayStr) ? todayStr : (set.has(yesterday) ? yesterday : null);
+    let n = 0;
+    while (cur && set.has(cur)) { n++; cur = ymdShift(cur, -1); }
+    streaks.set(name, n);
+  });
+  return streaks;
+}
+
+function buildRanking() {
+  const streaks = buildStreaks();
+  const start = rankStartDate();
+  const map = new Map();
+  dedupeDaily(records).forEach(r => {
+    if (!r || !r.name || !r.date) return;
+    if (r.date > today || r.date < start) return;
+    let row = map.get(r.name);
+    if (!row) {
+      row = { name: r.name, major: '', checkins: 0, days: new Set(), hours: 0 };
+      map.set(r.name, row);
+    }
+    row.major = r.major || row.major;
+    row.checkins += 1;
+    row.days.add(r.date);
+    if (isResultRec(r)) row.hours += Number(r.actualHours) || 0;
+  });
+  const list = Array.from(map.values()).map(row => ({
+    name: row.name, major: row.major, checkins: row.checkins,
+    days: row.days.size, hours: row.hours, streak: streaks.get(row.name) || 0
+  }));
+  const cmp = {
+    hours: (a, b) => b.hours - a.hours || b.checkins - a.checkins || b.streak - a.streak,
+    count: (a, b) => b.checkins - a.checkins || b.hours - a.hours || b.streak - a.streak,
+    streak: (a, b) => b.streak - a.streak || b.hours - a.hours || b.checkins - a.checkins
+  }[rankSort] || ((a, b) => b.hours - a.hours);
+  list.sort((a, b) => cmp(a, b) || a.name.localeCompare(b.name, 'zh-Hans-CN'));
+  return list;
+}
+
+function rankMetric(row) {
+  if (rankSort === 'count') return { value: row.checkins, text: String(row.checkins), unit: '次' };
+  if (rankSort === 'streak') return { value: row.streak, text: String(row.streak), unit: '天' };
+  return { value: row.hours, text: fmtH(row.hours), unit: '小时' };
+}
+
+function renderRank() {
+  const list = buildRanking();
+  const people = list.length;
+  const totalHours = list.reduce((s, r) => s + r.hours, 0);
+  const totalCheckins = list.reduce((s, r) => s + r.checkins, 0);
+  const avg = people ? totalHours / people : 0;
+
+  $('rankSum').innerHTML = `
+    <div class="rs"><b>${people}</b><span>参与人数</span></div>
+    <div class="rs"><b>${totalCheckins}</b><span>打卡总次数</span></div>
+    <div class="rs"><b>${fmtH(totalHours)}</b><span>合计学习(h)</span></div>`;
+
+  const start = rankStartDate();
+  const period = start === '0000-01-01' ? '全部日期' : start.replace(/-/g, '.') + ' – ' + today.replace(/-/g, '.');
+  $('rankNote').innerHTML = `${RANK_RANGE_LABEL[rankRange]}统计：${period}` +
+    ` · 人均 <b>${fmtH(avg)}</b> 小时 · 参与 <b>${people}</b> 人`;
+
+  const box = $('rankList');
+  if (!list.length) {
+    box.innerHTML = `<div class="empty"><div class="icon">🏆</div>这段时间还没有打卡记录。<br>去打个卡，排行榜就有你了！</div>`;
+    return;
+  }
+  const me = localStorage.getItem(LS_NAME) || '';
+  const maxV = Math.max(1, ...list.map(r => rankMetric(r).value));
+  box.innerHTML = list.map((r, i) => {
+    const rank = i + 1;
+    const m = rankMetric(r);
+    const pct = Math.max(4, Math.round(m.value / maxV * 100));
+    const cls = [rank <= 3 ? 'top' + rank : '', r.name === me ? 'me' : ''].filter(Boolean).join(' ');
+    const medal = rank <= 3 ? ['🥇', '🥈', '🥉'][rank - 1] : rank;
+    return `<div class="rank-row ${cls}">
+      <div class="rr-main">
+        <div class="rank-no ${rank <= 3 ? 'medal' : ''}">${medal}</div>
+        <div class="avatar">${escapeHtml((r.name || '?').slice(0, 1))}</div>
+        <div class="rr-who">
+          <b>${escapeHtml(r.name)}${r.name === me ? '<em class="me-tag">我</em>' : ''}</b>
+          <span>${escapeHtml(r.major || '—')}</span>
+        </div>
+        <div class="rr-val"><b>${m.text}</b><span>${m.unit}</span></div>
+      </div>
+      <div class="rr-meta">🔥 连续 <b>${r.streak}</b> 天 · 📅 打卡 <b>${r.checkins}</b> 次 · 🗓 出勤 <b>${r.days}</b> 天</div>
+      <div class="rank-bar"><i style="width:${pct}%"></i></div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------------- 交互绑定 ---------------- */
+function switchTab(name) {
+  const isForm = name === 'form';
+  const isWall = name === 'wall';
+  const isRank = name === 'rank';
+  $('tabForm').classList.toggle('active', isForm);
+  $('tabWall').classList.toggle('active', isWall);
+  $('tabRank').classList.toggle('active', isRank);
+  $('viewForm').classList.toggle('hidden', !isForm);
+  $('viewWall').classList.toggle('hidden', !isWall);
+  $('viewRank').classList.toggle('hidden', !isRank);
+  if (isForm) {
+    if (!touched[phase]) prefillPhase();
+    renderPlanRef();
+    renderPhaseBadges();
+    renderPhaseHint();
+    applyStep();
+  } else if (isWall) {
+    renderWall();
+    pullRemote().then(() => renderWall());
+  } else {
+    renderRank();
+    pullRemote().then(() => renderRank());
+  }
+}
+
+function bindEvents() {
+  // 阶段切换
+  document.querySelectorAll('#phaseSwitch button').forEach(b => {
+    b.addEventListener('click', () => setPhase(b.dataset.phase));
+  });
+
+  // 姓名 / 专业
+  $('inName').addEventListener('input', () => {
+    renderPhaseBadges();
+    renderPhaseHint();
+    renderPlanRef();
+    if (!touched[phase]) prefillPhase();   // 换了姓名就换成那个人的已存记录
+  });
+  $('inMajor').addEventListener('input', () => { touched[phase] = true; });
+
+  // 计划时长
+  $('inPlan').addEventListener('input', (e) => {
+    touched.plan = true;
+    setPlanHours(e.target.value);
+  });
+  document.querySelectorAll('#planChips button').forEach(b => {
+    b.addEventListener('click', () => { touched.plan = true; setPlanHours(b.dataset.v); });
+  });
+
+  // 实际时长
+  $('inActual').addEventListener('input', (e) => {
+    touched.result = true;
+    setActualHours(e.target.value);
+  });
+  document.querySelectorAll('#actualChips button').forEach(b => {
+    b.addEventListener('click', () => { touched.result = true; setActualHours(b.dataset.v); });
+  });
+
+  // 打卡时间
+  $('inTime').addEventListener('change', (e) => { draft.time = e.target.value; touched[phase] = true; });
+
+  // 计划内容 / 实际成果 / 明日计划
+  $('inPlanTask').addEventListener('input', () => { touched.plan = true; });
+  $('inResultTask').addEventListener('input', () => { touched.result = true; });
+  $('inTomorrow').addEventListener('input', () => { touched.result = true; });
+
+  // 完成情况
+  document.querySelectorAll('#statusGrid button').forEach(b => {
+    b.addEventListener('click', () => { setStatus(b.dataset.v); touched.result = true; });
+  });
+
+  // 上一步 / 下一步
+  $('btnNext').addEventListener('click', nextStep);
+  $('btnPrev').addEventListener('click', prevStep);
+
+  // 键盘 Enter 下一步（textarea 除外）
+  $('viewport').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); nextStep(); }
+  });
+
+  // 滑动换页
+  const viewport = $('viewport');
+  let sx = 0, sy = 0, swiping = false;
+  viewport.addEventListener('touchstart', (e) => {
+    const t = e.touches[0]; sx = t.clientX; sy = t.clientY; swiping = true;
+  }, { passive: true });
+  viewport.addEventListener('touchend', (e) => {
+    if (!swiping) return;
+    swiping = false;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+      if (dx < 0) nextStep(); else prevStep();
+    }
+  }, { passive: true });
+  // 鼠标拖动换页（电脑端预览）
+  let mx = null;
+  viewport.addEventListener('mousedown', (e) => { mx = e.clientX; });
+  viewport.addEventListener('mouseup', (e) => {
+    if (mx === null) return;
+    const dx = e.clientX - mx; mx = null;
+    if (Math.abs(dx) > 80 && !e.target.closest('input,textarea,button')) {
+      if (dx < 0) nextStep(); else prevStep();
+    }
+  });
+
+  // 切换 tab
+  $('tabForm').addEventListener('click', () => switchTab('form'));
+  $('tabWall').addEventListener('click', () => switchTab('wall'));
+  $('tabRank').addEventListener('click', () => switchTab('rank'));
+
+  // 排行榜：时间范围 / 排名依据 / 刷新
+  document.querySelectorAll('#rankRange button').forEach(b => {
+    b.addEventListener('click', () => {
+      rankRange = b.dataset.r;
+      document.querySelectorAll('#rankRange button').forEach(x => x.classList.toggle('on', x === b));
+      renderRank();
+    });
+  });
+  document.querySelectorAll('#rankSort button').forEach(b => {
+    b.addEventListener('click', () => {
+      rankSort = b.dataset.s;
+      document.querySelectorAll('#rankSort button').forEach(x => x.classList.toggle('on', x === b));
+      renderRank();
+    });
+  });
+  $('btnRankRefresh').addEventListener('click', async () => {
+    await pullRemote();
+    renderRank();
+    toast('已刷新');
+  });
+
+  // 打卡墙筛选与刷新
+  $('filterToday').addEventListener('click', () => {
+    filterMode = 'today';
+    $('filterToday').classList.add('on'); $('filterAll').classList.remove('on');
+    renderWall();
+  });
+  $('filterAll').addEventListener('click', () => {
+    filterMode = 'all';
+    $('filterAll').classList.add('on'); $('filterToday').classList.remove('on');
+    renderWall();
+  });
+  $('btnRefresh').addEventListener('click', async () => {
+    await pullRemote();
+    renderWall();
+    toast('已刷新');
+  });
+
+  // 跨天自动刷新
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) refreshToday();
+  });
+  setInterval(() => { refreshToday(); }, 60000);
+}
+
+/* ---------------- 启动 ---------------- */
+async function init() {
+  $('groupName').textContent = CONFIG.groupName;
+  loadLocal();
+
+  const savedName = localStorage.getItem(LS_NAME) || '';
+  if (savedName) $('inName').value = savedName;
+  $('inTime').value = nowTime();
+
+  bindEvents();
+  refreshToday();
+  setPhase(pickDefaultPhase());   // 已定计划 → 默认「交结果」；未定 → 默认「定计划」
+
+  await pullRemote();
+  renderStats();
+  renderWall();
+  if (!$('viewForm').classList.contains('hidden') && !touched[phase]) {
+    prefillPhase();
+    renderPhaseBadges();
+    renderPhaseHint();
+  }
+
+  if (CONFIG.remote.url) {
+    // 任何 tab 都定时拉取：顶部统计 / 打卡墙 / 排行榜保持最新；
+    // 有未同步记录时会顺带重试补传
+    setInterval(() => {
+      if (document.hidden) return;
+      pullRemote();
+    }, CONFIG.remote.pollInterval || 15000);
+    window.addEventListener('online', () => { flushRemote(); });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) return;
+      pullRemote();
+      flushRemote();
+    });
+  }
+  setSyncBadge();
+}
+
+init();
+</script>
+</body>
+</html>
